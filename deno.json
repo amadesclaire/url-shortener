@@ -1,12 +1,19 @@
 {
-  "name": "url-shortener",
+  "name": "@amadesclaire/url-shortener",
   "version": "0.0.1",
   "description": "A simple URL shortener",
   "tasks": {
-    "dev": "deno run --watch --allow-net --allow-env ./src/app.ts"
+    "dev": "deno run --watch --allow-net --allow-env ./src/app.ts",
+    "test": "deno test --allow-net --allow-env"
   },
   "imports": {
     "@hono/hono": "jsr:@hono/hono@^4.6.11",
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "controllers/": "./src/controllers/",
+    "middleware/": "./src/middleware/",
+    "models/": "./src/models/",
+    "routes/": "./src/routes/",
+    "services/": "./src/services/",
+    "views/": "./src/views/"
   }
 }
