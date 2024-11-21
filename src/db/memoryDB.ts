@@ -1,4 +1,4 @@
-import { URLRecord, URLRecordSlim } from "models/urlRecordModel.ts";
+import { URLRecord } from "models/urlRecordModel.ts";
 import { IDatabase } from "./DatabaseInterface.ts";
 
 class MemoryDB implements IDatabase {
@@ -6,11 +6,6 @@ class MemoryDB implements IDatabase {
 
   getUrlRecord(shortcode: string): URLRecord | undefined {
     return this.urlMap.get(shortcode);
-  }
-
-  getUrlRecordSlim(shortcode: string): URLRecordSlim | undefined {
-    const { accessCount: _, ...slim } = this.urlMap.get(shortcode) as URLRecord;
-    return slim;
   }
 
   setUrlRecord(shortcode: string, record: URLRecord): void {

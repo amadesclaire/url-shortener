@@ -7,6 +7,14 @@ class UrlService {
   constructor(db: IDatabase) {
     this.db = db;
   }
+
+  private assertRecordExists(
+    record: URLRecord | undefined,
+    shortcode: string
+  ): asserts record is URLRecord {
+    if (!record) throw new Error(`Shortcode "${shortcode}" not found`);
+  }
+
   private toSlim(record: URLRecord): URLRecordSlim {
     const { accessCount: _, ...slim } = record;
     return slim;
@@ -42,7 +50,7 @@ class UrlService {
   }
 
   public customShortUrl(url: URL, shortcode: string): URLRecordSlim {
-    if (shortcode.length < 1 || shortcode.length > 6) {
+    if (!/^[a-zA-Z0-9]{1,6}$/.test(shortcode)) {
       throw new Error("Shortcode must be between 1 and 6 characters long");
     }
 
@@ -65,51 +73,35 @@ class UrlService {
 
   public getUrlRecordSlim(shortcode: string): URLRecordSlim {
     const urlRecord = this.db.getUrlRecord(shortcode);
-    if (!urlRecord) {
-      throw new Error(`Shortcode "${shortcode}" not found`);
-    }
-    const updatedRecord: URLRecord = {
-      ...urlRecord,
-      accessCount: urlRecord.accessCount + 1,
-    };
-    this.db.setUrlRecord(shortcode, updatedRecord);
-    return this.toSlim(updatedRecord);
+    this.assertRecordExists(urlRecord, shortcode);
+
+    urlRecord.accessCount += 1;
+    this.db.setUrlRecord(shortcode, urlRecord);
+    return this.toSlim(urlRecord);
   }
 
   public getUrlRecord(shortcode: string): URLRecord {
     const urlRecord = this.db.getUrlRecord(shortcode);
-    if (!urlRecord) {
-      throw new Error(`Shortcode "${shortcode}" not found`);
-    }
-    const updatedRecord: URLRecord = {
-      ...urlRecord,
-      accessCount: urlRecord.accessCount + 1,
-    };
-    this.db.setUrlRecord(shortcode, updatedRecord);
-    return updatedRecord;
+    this.assertRecordExists(urlRecord, shortcode);
+    urlRecord.accessCount += 1;
+    this.db.setUrlRecord(shortcode, urlRecord);
+    return urlRecord;
   }
 
   public updateShortUrl(shortcode: string, url: URL): URLRecordSlim {
     const urlRecord = this.db.getUrlRecord(shortcode);
-    if (!urlRecord) {
-      throw new Error(`Shortcode "${shortcode}" not found`);
-    }
+    this.assertRecordExists(urlRecord, shortcode);
     const updatedAt = new Date().toISOString();
-    const newUrlRecord = {
-      ...urlRecord,
-      url: url,
-      updatedAt,
-    };
+    urlRecord.updatedAt = updatedAt;
+    urlRecord.url = url;
 
-    this.db.setUrlRecord(shortcode, newUrlRecord);
-    return this.toSlim(newUrlRecord);
+    this.db.setUrlRecord(shortcode, urlRecord);
+    return this.toSlim(urlRecord);
   }
 
   public deleteShortcode(shortcode: string): void {
     const urlRecord = this.db.getUrlRecord(shortcode);
-    if (!urlRecord) {
-      throw new Error(`Shortcode "${shortcode}" not found`);
-    }
+    this.assertRecordExists(urlRecord, shortcode);
 
     this.db.deleteUrlRecord(shortcode);
   }
