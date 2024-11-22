@@ -40,7 +40,7 @@ class UrlService {
     const urlRecord: URLRecord = {
       id: crypto.randomUUID(),
       url: url,
-      shortCode: shortcode,
+      shortcode: shortcode,
       createdAt,
       updatedAt: createdAt,
       accessCount: 0,
@@ -61,7 +61,7 @@ class UrlService {
     const urlRecord: URLRecord = {
       id: crypto.randomUUID(),
       url: url,
-      shortCode: shortcode,
+      shortcode: shortcode,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       accessCount: 0,
@@ -75,16 +75,22 @@ class UrlService {
     const urlRecord = this.db.getUrlRecord(shortcode);
     this.assertRecordExists(urlRecord, shortcode);
     this.db.incrementAccessCount(shortcode);
-    urlRecord.accessCount++;
-    return this.toSlim(urlRecord);
+    const record = {
+      ...urlRecord,
+      accessCount: urlRecord.accessCount + 1,
+    };
+    return this.toSlim(record);
   }
 
   public getUrlRecord(shortcode: string): URLRecord {
     const urlRecord = this.db.getUrlRecord(shortcode);
     this.assertRecordExists(urlRecord, shortcode);
     this.db.incrementAccessCount(shortcode);
-    urlRecord.accessCount++;
-    return urlRecord;
+    const record = {
+      ...urlRecord,
+      accessCount: urlRecord.accessCount + 1,
+    };
+    return record;
   }
 
   public updateShortUrl(shortcode: string, url: URL): URLRecordSlim {
