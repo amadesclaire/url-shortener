@@ -9,9 +9,9 @@ class UrlService {
   }
 
   private assertRecordExists(
-    record: URLRecord | undefined,
+    record: URLRecord | URLRecordSlim | undefined,
     shortcode: string
-  ): asserts record is URLRecord {
+  ): asserts record is URLRecord | URLRecordSlim {
     if (!record) throw new Error(`Shortcode "${shortcode}" not found`);
   }
 
@@ -41,7 +41,7 @@ class UrlService {
       id: crypto.randomUUID(),
       url: url,
       shortCode: shortcode,
-      createdAt: createdAt,
+      createdAt,
       updatedAt: createdAt,
       accessCount: 0,
     };
@@ -74,17 +74,16 @@ class UrlService {
   public getUrlRecordSlim(shortcode: string): URLRecordSlim {
     const urlRecord = this.db.getUrlRecord(shortcode);
     this.assertRecordExists(urlRecord, shortcode);
-
-    urlRecord.accessCount += 1;
-    this.db.setUrlRecord(shortcode, urlRecord);
+    this.db.incrementAccessCount(shortcode);
+    urlRecord.accessCount++;
     return this.toSlim(urlRecord);
   }
 
   public getUrlRecord(shortcode: string): URLRecord {
     const urlRecord = this.db.getUrlRecord(shortcode);
     this.assertRecordExists(urlRecord, shortcode);
-    urlRecord.accessCount += 1;
-    this.db.setUrlRecord(shortcode, urlRecord);
+    this.db.incrementAccessCount(shortcode);
+    urlRecord.accessCount++;
     return urlRecord;
   }
 
@@ -92,11 +91,14 @@ class UrlService {
     const urlRecord = this.db.getUrlRecord(shortcode);
     this.assertRecordExists(urlRecord, shortcode);
     const updatedAt = new Date().toISOString();
-    urlRecord.updatedAt = updatedAt;
-    urlRecord.url = url;
+    const updatedRecord: URLRecord = {
+      ...urlRecord,
+      url,
+      updatedAt,
+    };
 
-    this.db.setUrlRecord(shortcode, urlRecord);
-    return this.toSlim(urlRecord);
+    this.db.setUrlRecord(shortcode, updatedRecord);
+    return this.toSlim(updatedRecord);
   }
 
   public deleteShortcode(shortcode: string): void {

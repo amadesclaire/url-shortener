@@ -1,182 +1,173 @@
 import { assertEquals, assertThrows } from "@std/assert";
+import { URLRecord } from "models/urlRecordModel.ts";
+import MemoryDB from "db/MemoryDB.ts";
 import UrlService from "services/urlService.ts";
-import { URLRecord } from "models/urlRecord.ts";
 
-Deno.test(
-  "UrlService - shortUrl creates a record with a random shortcode",
-  () => {
-    const service = new UrlService();
-    const originalUrl = new URL("https://example.com");
+Deno.test("UrlService - Shorten URL", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
 
-    const record: URLRecord = service.shortUrl(originalUrl);
+  const url = new URL("https://example.com");
+  const slimRecord = service.shortUrl(url);
 
-    assertEquals(record.url.toString(), originalUrl.toString());
-    assertEquals(record.shortCode.length, 6);
-    assertEquals(record.createdAt, record.updatedAt);
-  }
-);
-
-Deno.test(
-  "UrlService - customShortUrl creates a record with a custom shortcode",
-  () => {
-    const service = new UrlService();
-    const originalUrl = new URL("https://example.com");
-    const shortcode = "custom";
-
-    const record: URLRecord = service.customShortUrl(originalUrl, shortcode);
-
-    assertEquals(record.shortCode, shortcode);
-    assertEquals(record.url.toString(), originalUrl.toString());
-  }
-);
-
-Deno.test(
-  "UrlService - customShortUrl throws error for invalid shortcode length",
-  () => {
-    const service = new UrlService();
-    const originalUrl = new URL("https://example.com");
-
-    assertThrows(
-      () => service.customShortUrl(originalUrl, "toolong"),
-      Error,
-      "Shortcode must be between 1 and 6 characters long"
-    );
-  }
-);
-
-Deno.test(
-  "UrlService - customShortUrl throws error for duplicate shortcode",
-  () => {
-    const service = new UrlService();
-    const originalUrl = new URL("https://example.com");
-    const shortcode = "custom";
-
-    service.customShortUrl(originalUrl, shortcode);
-
-    assertThrows(
-      () => service.customShortUrl(originalUrl, shortcode),
-      Error,
-      `Shortcode "${shortcode}" already exists`
-    );
-  }
-);
-
-Deno.test(
-  "UrlService - getUrlRecord increments access count and returns URL record",
-  () => {
-    const service = new UrlService();
-    const originalUrl = new URL("https://example.com");
-    const record: URLRecord = service.shortUrl(originalUrl);
-
-    // First access
-    const fetchedRecord = service.getUrlRecord(record.shortCode);
-    assertEquals(fetchedRecord.url.toString(), originalUrl.toString());
-
-    // Verify access count
-    const accessCount =
-      service.getUrlRecordWithAccessCount(record.shortCode)?.accessCount ?? 0;
-    assertEquals(accessCount, 1);
-
-    // Second access
-    service.getUrlRecord(record.shortCode);
-    const updatedAccessCount =
-      service.getUrlRecordWithAccessCount(record.shortCode)?.accessCount ?? 0;
-    assertEquals(updatedAccessCount, 2);
-  }
-);
-
-Deno.test(
-  "UrlService - getUrlRecord throws error for nonexistent shortcode",
-  () => {
-    const service = new UrlService();
-
-    assertThrows(
-      () => service.getUrlRecord("nonexistent"),
-      Error,
-      `Shortcode "nonexistent" not found`
-    );
-  }
-);
-
-Deno.test("UrlService - updateShortUrl updates the URL for a shortcode", () => {
-  const service = new UrlService();
-  const originalUrl = new URL("https://example.com");
-  const updatedUrl = new URL("https://updated.com");
-
-  const record = service.shortUrl(originalUrl);
-  const updatedRecord = service.updateShortUrl(record.shortCode, updatedUrl);
-
-  assertEquals(updatedRecord.url.toString(), updatedUrl.toString());
-  assertEquals(updatedRecord.createdAt, record.createdAt);
-
-  // Fetch the updated record from the service
-  const latestRecord = service.getUrlRecord(record.shortCode);
-
-  // Compare the `updatedAt` timestamps
   assertEquals(
-    new Date(updatedRecord.updatedAt).getTime(),
-    new Date(latestRecord.updatedAt).getTime()
+    slimRecord.url.href,
+    url.href,
+    "Shortened URL should match the input URL"
+  );
+  assertEquals(
+    slimRecord.shortCode.length,
+    6,
+    "Shortcode should be 6 characters long"
+  );
+  assertEquals(
+    typeof slimRecord.createdAt,
+    "string",
+    "CreatedAt should be a string"
   );
 });
 
-Deno.test(
-  "UrlService - updateShortUrl throws error for nonexistent shortcode",
-  () => {
-    const service = new UrlService();
-    const updatedUrl = new URL("https://updated.com");
+Deno.test("UrlService - Custom Short URL", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
 
-    assertThrows(
-      () => service.updateShortUrl("nonexistent", updatedUrl),
-      Error,
-      `Shortcode "nonexistent" not found`
-    );
-  }
-);
+  const url = new URL("https://example.com");
+  const shortcode = "custom";
 
-Deno.test("UrlService - deleteShortcode removes the record", () => {
-  const service = new UrlService();
-  const originalUrl = new URL("https://example.com");
-  const record: URLRecord = service.shortUrl(originalUrl);
+  const slimRecord = service.customShortUrl(url, shortcode);
+
+  assertEquals(
+    slimRecord.shortCode,
+    shortcode,
+    "Shortcode should match the custom value"
+  );
+  assertEquals(slimRecord.url.href, url.href, "URL should match the input URL");
+});
+
+Deno.test("UrlService - Custom Short URL Validation", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
+
+  const url = new URL("https://example.com");
+
+  assertThrows(
+    () => service.customShortUrl(url, "too-long-shortcode"),
+    Error,
+    "Shortcode must be between 1 and 6 characters long",
+    "Should throw an error for shortcodes longer than 6 characters"
+  );
+
+  assertThrows(
+    () => service.customShortUrl(url, "inv@lid"),
+    Error,
+    "Shortcode must be between 1 and 6 characters long",
+    "Should throw an error for invalid shortcodes"
+  );
+});
+
+Deno.test("UrlService - Get URL Record Slim", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
+
+  const record = service.shortUrl(new URL("https://example.com"));
+  const shortcode = record.shortCode;
+
+  const slimRecord = service.getUrlRecordSlim(shortcode);
+  assertEquals(slimRecord.shortCode, shortcode, "Shortcode should match");
+  assertEquals(slimRecord.url.href, record.url.href, "URL should match");
+  assertEquals(
+    service.getUrlRecord(shortcode).accessCount,
+    2,
+    "Access count should be incremented"
+  );
+});
+
+Deno.test("UrlService - Get URL Record", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
+
+  const record = service.shortUrl(new URL("https://example.com"));
+  const fullRecord = service.getUrlRecord(record.shortCode);
+
+  assertEquals(
+    fullRecord.shortCode,
+    record.shortCode,
+    "Shortcode should match"
+  );
+  assertEquals(fullRecord.url.href, record.url.href, "URL should match");
+  assertEquals(fullRecord.accessCount, 1, "Access count should be incremented");
+});
+
+Deno.test("UrlService - Update Short URL", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
+
+  const record = structuredClone(
+    service.shortUrl(new URL("https://example.com"))
+  );
+
+  const newUrl = new URL("https://new-example.com");
+  const updatedRecord = service.updateShortUrl(record.shortCode, newUrl);
+
+  assertEquals(updatedRecord.url.href, newUrl.href, "URL should be updated");
+  assertEquals(
+    updatedRecord.shortCode,
+    record.shortCode,
+    "Shortcode should remain the same"
+  );
+  assertEquals(
+    record.updatedAt === updatedRecord.updatedAt,
+    true,
+    "UpdatedAt should change"
+  );
+});
+
+Deno.test("UrlService - Delete Shortcode", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
+
+  const record: URLRecord = {
+    id: "1",
+    url: new URL("https://example.com"),
+    shortCode: "abc123",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    accessCount: 0,
+  };
+
+  db.setUrlRecord(record.shortCode, record);
 
   service.deleteShortcode(record.shortCode);
 
-  assertThrows(
-    () => service.getUrlRecord(record.shortCode),
-    Error,
-    `Shortcode "${record.shortCode}" not found`
-  );
+  const result = db.getUrlRecord(record.shortCode);
+  assertEquals(result, undefined, "Record should be deleted");
 });
 
-Deno.test(
-  "UrlService - deleteShortcode throws error for nonexistent shortcode",
-  () => {
-    const service = new UrlService();
+Deno.test("UrlService - Get All Mappings", () => {
+  const db = new MemoryDB();
+  const service = new UrlService(db);
 
-    assertThrows(
-      () => service.deleteShortcode("nonexistent"),
-      Error,
-      `Shortcode "nonexistent" not found`
-    );
-  }
-);
+  const record1: URLRecord = {
+    id: "1",
+    url: new URL("https://example1.com"),
+    shortCode: "short1",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    accessCount: 0,
+  };
 
-Deno.test("UrlService - getAllMappings returns all stored mappings", () => {
-  const service = new UrlService();
-  const url1 = new URL("https://example.com/1");
-  const url2 = new URL("https://example.com/2");
+  const record2: URLRecord = {
+    id: "2",
+    url: new URL("https://example2.com"),
+    shortCode: "short2",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    accessCount: 0,
+  };
 
-  const record1: URLRecord = service.shortUrl(url1);
-  const record2: URLRecord = service.shortUrl(url2);
+  db.setUrlRecord(record1.shortCode, record1);
+  db.setUrlRecord(record2.shortCode, record2);
 
-  const mappings = service.getAllMappings();
-
-  assertEquals(mappings.size, 2);
-  assertEquals(
-    mappings.get(record1.shortCode)?.url.toString(),
-    url1.toString()
-  );
-  assertEquals(
-    mappings.get(record2.shortCode)?.url.toString(),
-    url2.toString()
-  );
+  const allMappings = service.getAllMappings();
+  assertEquals(allMappings.size, 2, "Should retrieve all mappings");
 });

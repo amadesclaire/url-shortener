@@ -5,4 +5,5 @@ export interface IDatabase {
   setUrlRecord(shortcode: string, record: URLRecordSlim): void;
   deleteUrlRecord(shortcode: string): void;
   getAllRecords(): Map<string, URLRecord>;
+  incrementAccessCount(shortcode: string): void;
 }

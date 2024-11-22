@@ -19,6 +19,12 @@ class MemoryDB implements IDatabase {
   getAllRecords(): Map<string, URLRecord> {
     return new Map(this.urlMap);
   }
+  incrementAccessCount(shortcode: string): void {
+    const record = this.urlMap.get(shortcode);
+    if (!record) throw new Error(`Shortcode "${shortcode}" not found.`);
+    const newRecord = { ...record, accessCount: record.accessCount + 1 };
+    this.urlMap.set(shortcode, newRecord);
+  }
 }
 
 export default MemoryDB;
