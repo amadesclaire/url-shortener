@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import MemoryDB from "db/MemoryDB.ts";
+import MemoryDB from "db/memoryDB.ts";
 import { URLRecord } from "models/urlRecordModel.ts";
 
 Deno.test("MemoryDB - Set and Get URL Record", () => {
@@ -7,14 +7,14 @@ Deno.test("MemoryDB - Set and Get URL Record", () => {
   const record: URLRecord = {
     id: "1",
     url: new URL("https://example.com"),
-    shortCode: "abc123",
+    shortcode: "abc123",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     accessCount: 0,
   };
 
-  db.setUrlRecord(record.shortCode, record);
-  const retrieved = db.getUrlRecord(record.shortCode);
+  db.setUrlRecord(record.shortcode, record);
+  const retrieved = db.getUrlRecord(record.shortcode);
 
   assertEquals(
     retrieved,
@@ -39,16 +39,16 @@ Deno.test("MemoryDB - Delete URL Record", () => {
   const record: URLRecord = {
     id: "1",
     url: new URL("https://example.com"),
-    shortCode: "abc123",
+    shortcode: "abc123",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     accessCount: 0,
   };
 
-  db.setUrlRecord(record.shortCode, record);
-  db.deleteUrlRecord(record.shortCode);
+  db.setUrlRecord(record.shortcode, record);
+  db.deleteUrlRecord(record.shortcode);
 
-  const result = db.getUrlRecord(record.shortCode);
+  const result = db.getUrlRecord(record.shortcode);
   assertEquals(
     result,
     undefined,
@@ -61,7 +61,7 @@ Deno.test("MemoryDB - Get All Records", () => {
   const record1: URLRecord = {
     id: "1",
     url: new URL("https://example1.com"),
-    shortCode: "short1",
+    shortcode: "short1",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     accessCount: 0,
@@ -69,24 +69,24 @@ Deno.test("MemoryDB - Get All Records", () => {
   const record2: URLRecord = {
     id: "2",
     url: new URL("https://example2.com"),
-    shortCode: "short2",
+    shortcode: "short2",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     accessCount: 0,
   };
 
-  db.setUrlRecord(record1.shortCode, record1);
-  db.setUrlRecord(record2.shortCode, record2);
+  db.setUrlRecord(record1.shortcode, record1);
+  db.setUrlRecord(record2.shortcode, record2);
 
   const allRecords = db.getAllRecords();
   assertEquals(allRecords.size, 2, "Should contain all inserted records");
   assertEquals(
-    allRecords.get(record1.shortCode),
+    allRecords.get(record1.shortcode),
     record1,
     "Should retrieve first record correctly"
   );
   assertEquals(
-    allRecords.get(record2.shortCode),
+    allRecords.get(record2.shortcode),
     record2,
     "Should retrieve second record correctly"
   );
@@ -97,17 +97,17 @@ Deno.test("MemoryDB - Increment Access Count", () => {
   const record: URLRecord = {
     id: "1",
     url: new URL("https://example.com"),
-    shortCode: "abc123",
+    shortcode: "abc123",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     accessCount: 0,
   };
 
-  db.setUrlRecord(record.shortCode, record);
-  db.incrementAccessCount(record.shortCode);
-  db.incrementAccessCount(record.shortCode);
+  db.setUrlRecord(record.shortcode, record);
+  db.incrementAccessCount(record.shortcode);
+  db.incrementAccessCount(record.shortcode);
 
-  const updatedRecord = db.getUrlRecord(record.shortCode);
+  const updatedRecord = db.getUrlRecord(record.shortcode);
   assertEquals(
     updatedRecord?.accessCount,
     2,
