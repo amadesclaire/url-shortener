@@ -96,14 +96,16 @@ class UrlService {
   public updateShortUrl(shortcode: string, url: URL): URLRecordSlim {
     const urlRecord = this.db.getUrlRecord(shortcode);
     this.assertRecordExists(urlRecord, shortcode);
-    const updatedAt = new Date().toISOString();
+
+    const updateTime = new Date().toISOString();
     const updatedRecord: URLRecord = {
       ...urlRecord,
       url,
-      updatedAt,
+      updatedAt: updateTime,
     };
 
     this.db.setUrlRecord(shortcode, updatedRecord);
+
     return this.toSlim(updatedRecord);
   }
 

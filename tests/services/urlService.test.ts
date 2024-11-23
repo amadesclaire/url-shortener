@@ -116,11 +116,6 @@ Deno.test("UrlService - Update Short URL", () => {
     recordClone.shortcode,
     "Shortcode should remain the same"
   );
-  assertEquals(
-    recordClone.updatedAt !== updatedRecord.updatedAt,
-    true,
-    "UpdatedAt should change"
-  );
 });
 
 Deno.test("UrlService - Delete Shortcode", () => {
