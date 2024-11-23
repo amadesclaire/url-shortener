@@ -13,12 +13,13 @@ const app = new Hono();
 const api = new Hono();
 const v1 = new Hono();
 
-app.post("/shorten", urlController.create());
-app.get("/shorten/:shortcode", urlController.get());
-app.put("/shorten/:shortcode", urlController.update());
-app.delete("/shorten/:shortcode", urlController.delete());
-app.get("/shorten/:shortcode/stats", urlController.stats());
+v1.post("/shorten", urlController.create());
+v1.get("/shorten/:shortcode", urlController.get());
+v1.put("/shorten/:shortcode", urlController.update());
+v1.delete("/shorten/:shortcode", urlController.delete());
+v1.get("/shorten/:shortcode/stats", urlController.stats());
 
 api.route("/v1", v1);
 app.route("/api", api);
-export default app;
+
+Deno.serve({ port: 8000 }, app.fetch);

@@ -102,9 +102,10 @@ Deno.test("UrlService - Update Short URL", () => {
   const db = new MemoryDB();
   const service = new UrlService(db);
 
-  const record = structuredClone(
-    service.shortUrl(new URL("https://example.com"))
-  );
+  const record = service.shortUrl(new URL("https://example.com"));
+  const recordClone = {
+    ...record,
+  };
 
   const newUrl = new URL("https://new-example.com");
   const updatedRecord = service.updateShortUrl(record.shortcode, newUrl);
@@ -112,11 +113,11 @@ Deno.test("UrlService - Update Short URL", () => {
   assertEquals(updatedRecord.url.href, newUrl.href, "URL should be updated");
   assertEquals(
     updatedRecord.shortcode,
-    record.shortcode,
+    recordClone.shortcode,
     "Shortcode should remain the same"
   );
   assertEquals(
-    record.updatedAt === updatedRecord.updatedAt,
+    recordClone.updatedAt !== updatedRecord.updatedAt,
     true,
     "UpdatedAt should change"
   );
