@@ -50,12 +50,13 @@ class UrlService {
   }
 
   public customShortUrl(url: URL, shortcode: string): URLRecordSlim {
-    if (!/^[a-zA-Z0-9]{1,6}$/.test(shortcode)) {
+    const validShortcode = /^[a-zA-Z0-9]{1,6}$/.test(shortcode);
+    if (!validShortcode) {
       throw new Error("Shortcode must be between 1 and 6 characters long");
     }
 
     if (this.db.getUrlRecord(shortcode)) {
-      throw new Error(`Shortcode "${shortcode}" already exists`);
+      throw new Error(`Shortcode already exists`);
     }
 
     const urlRecord: URLRecord = {
