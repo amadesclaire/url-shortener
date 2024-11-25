@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 import SQLiteDB from "db/sqliteDB.ts";
 import { URLRecord, URLRecordSlim } from "models/urlRecordModel.ts";
 
@@ -169,8 +169,7 @@ Deno.test("SQLiteDB - setUrlRecord updates the updatedAt value", () => {
 
   db.setUrlRecord(record.shortcode, record);
 
-  const initialRecord = db.getUrlRecord(record.shortcode);
-  const initialUpdatedAt = initialRecord?.updatedAt;
+  const _initialRecord = db.getUrlRecord(record.shortcode);
 
   const newUrl = new URL("https://updated-example.com");
   const updatedRecord: URLRecordSlim = {

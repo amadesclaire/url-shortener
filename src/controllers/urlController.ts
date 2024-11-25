@@ -1,6 +1,5 @@
 import { Context } from "@hono/hono";
 import { HTTPException } from "@hono/hono/http-exception";
-import { StatusCode } from "@hono/hono/utils/http-status";
 import UrlService from "services/urlService.ts";
 
 class UrlController {

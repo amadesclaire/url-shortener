@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "A simple URL shortener",
   "tasks": {
-    "dev": "deno run --watch --allow-net --allow-env --allow-read --allow-write --allow-ffi ./src/app.ts",
+    "run": "deno run --watch --allow-net --allow-env --allow-read --allow-write --allow-ffi ./src/app.ts",
     "test": "deno test --allow-net --allow-env --allow-read --allow-write --allow-ffi"
   },
   "imports": {

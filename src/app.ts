@@ -1,12 +1,18 @@
-import { Hono, Context } from "@hono/hono";
+import { Hono } from "@hono/hono";
 import UrlService from "services/urlService.ts";
 import MemoryDB from "db/memoryDB.ts";
+import SQLiteDB from "db/sqliteDB.ts";
 import UrlController from "controllers/urlController.ts";
 import { home } from "views/home.tsx";
 import { HTTPException } from "@hono/hono/http-exception";
 
+// Environment Variables
+const PORT = parseInt(Deno.env.get("PORT") || "8000");
+const DB_TYPE = Deno.env.get("DB_TYPE") || "sqlite";
+const DB_PATH = Deno.env.get("DB_PATH") || "urls.db";
+
 // Services
-const db = new MemoryDB();
+const db = DB_TYPE === "sqlite" ? new SQLiteDB(DB_PATH) : new MemoryDB();
 const urlService = new UrlService(db);
 const urlController = new UrlController(urlService);
 
@@ -51,4 +57,4 @@ app.get("/:*", (c) => {
   return c.redirect(record ? record.url.href : "/");
 });
 
-Deno.serve({ port: 8000 }, app.fetch);
+Deno.serve({ port: PORT }, app.fetch);
